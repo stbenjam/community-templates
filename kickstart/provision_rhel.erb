@@ -15,6 +15,7 @@ oses:
   puppet_enabled = pm_set || @host.params['force-puppet']
   salt_enabled = @host.params['salt_master'] ? true : false
   section_end = os_major <= 5 ? '' : '%end'
+  host_provision = @provisioning_type == "host" || @provisioning_type.nil?
 %>
 install
 <%= @mediapath %><%= proxy_string %>
@@ -28,7 +29,7 @@ firewall --<%= os_major >= 6 ? 'service=' : '' %>ssh
 authconfig --useshadow --passalgo=sha256 --kickstart
 timezone --utc <%= @host.params['time-zone'] || 'UTC' %>
 
-<% if os_major >= 7 && @host.info["parameters"]["realm"] && @host.otp && @host.realm && @host.realm.realm_type == "Active Directory" -%>
+<% if os_major >= 7 && host_provision && @host.otp && @host.realm && @host.realm.realm_type == "Active Directory" -%>
 realm join --one-time-password=<%= @host.otp %> <%= @host.realm %>
 <% end -%>
 
@@ -101,7 +102,7 @@ echo "updating system time"
 
 <%= snippet 'redhat_register' %>
 
-<% if @host.info["parameters"]["realm"] && @host.otp && @host.realm && @host.realm.realm_type == "FreeIPA" -%>
+<% if host_provision && @host.otp && @host.realm && @host.realm.realm_type == "FreeIPA" -%>
 <%= snippet "freeipa_register" %>
 <% end -%>
 
@@ -135,10 +136,11 @@ salt-call --no-color --grains >/dev/null
 
 sync
 
+<% if host_provision -%>
 # Inform the build system that we are done.
 echo "Informing Foreman that we are built"
 wget -q -O /dev/null --no-check-certificate <%= foreman_url %>
-# Sleeping an hour for debug
+<% end -%>
 ) 2>&1 | tee /root/install.post.log
 exit 0
 

@@ -17,6 +17,7 @@ oses:
   os_major = @host.operatingsystem.major.to_i
   pm_set = @host.puppetmaster.empty? ? false : true
   puppet_enabled = pm_set || @host.params['force-puppet']
+  host_provision = @provisioning_type == "host" || @provisioning_type.nil?
 %>
 
 <% if rhel_compatible -%>
@@ -39,7 +40,7 @@ echo "updating system time"
 /usr/sbin/ntpdate -sub <%= @host.params['ntp-server'] || '0.fedora.pool.ntp.org' %>
 /usr/sbin/hwclock --systohc
 
-<% if @host.info["parameters"]["realm"] && @host.otp && @host.realm && @host.realm.realm_type == "FreeIPA" -%>
+<% if host_provision && @host.otp && @host.realm && @host.realm.realm_type == "FreeIPA" -%>
 <%= snippet "freeipa_register" %>
 <% end -%>
 

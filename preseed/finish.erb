@@ -39,4 +39,6 @@ EOF
 salt-call --no-color --grains >/dev/null
 <% end -%>
 
+<% if @provisioning_type.nil? || @provisioning_type == 'host' -%>
 /usr/bin/wget --no-proxy --quiet --output-document=/dev/null --no-check-certificate <%= foreman_url %>
+<% end -%>

@@ -21,6 +21,7 @@ service network restart
   rhel_compatible = @host.operatingsystem.family == 'Redhat' && @host.operatingsystem.name != 'Fedora'
   os_major = @host.operatingsystem.major.to_i
   pm_set = @host.puppetmaster.empty? ? false : true
+  salt_enabled = @host.params['salt_master'] ? true : false
   puppet_enabled = pm_set || @host.params['force-puppet'] && @host.params['force-puppet'] == 'true'
 %>
 
@@ -42,6 +43,27 @@ rpm -ivh http://yum.puppetlabs.com/puppetlabs-release-el-<%= os_major -%>.noarch
 <% end -%>
 <% end -%>
 yum -t -y -e 0 install puppet
+<% end -%>
+
+<% if salt_enabled %>
+<% if @host.params['enable-saltstack-repo'] && @host.params['enable-saltstack-repo'] == 'true' -%>
+cat > /etc/yum.repos.d/saltstack.repo <<EOF
+[saltstack-repo]
+name=SaltStack repo for RHEL/CentOS $releasever
+baseurl=https://repo.saltstack.com/yum/rhel$releasever
+enabled=1
+gpgcheck=1
+gpgkey=https://repo.saltstack.com/yum/rhel$releasever/SALTSTACK-GPG-KEY.pub
+EOF
+<% end -%>
+yum -t -y -e 0 install salt-minion
+cat > /etc/salt/minion << EOF
+<%= snippet 'saltstack_minion' %>
+EOF
+# Setup salt-minion to run on system reboot
+/sbin/chkconfig --level 345 salt-minion on
+# Running salt-call to trigger key signing
+salt-call --no-color --grains >/dev/null
 <% end -%>
 
 #update local time

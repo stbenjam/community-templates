@@ -23,6 +23,7 @@ This template accepts the following parameters:
 - force-puppet: boolean (default=false)
 - enable-puppetlabs-repo: boolean (default=false)
 - salt_master: string (default=undef)
+- enable-saltsatck-repo: boolean (default=false)
 - ntp-server: string (default="0.fedora.pool.ntp.org")
 - bootloader-append: string (default="nofb quiet splash=quiet")
 %>
@@ -78,6 +79,9 @@ repo --name="EPEL" --mirrorlist=https://mirrors.fedoraproject.org/metalink?repo=
 <% if puppet_enabled && @host.params['enable-puppetlabs-repo'] && @host.params['enable-puppetlabs-repo'] == 'true' -%>
 repo --name=puppetlabs-products --baseurl=http://yum.puppetlabs.com/el/<%= @host.operatingsystem.major %>/products/<%= @host.architecture %><%= proxy_string %>
 repo --name=puppetlabs-deps --baseurl=http://yum.puppetlabs.com/el/<%= @host.operatingsystem.major %>/dependencies/<%= @host.architecture %><%= proxy_string %>
+<% end -%>
+<% if salt_enabled && @host.params['enable-saltstack-repo'] && @host.params['enable-saltstack-repo'] == 'true' -%>
+repo --name=saltstack-repo --baseurl=https://repo.saltstack.com/yum/rhel<%= @host.operatingsystem.major %><%= proxy_string %>
 <% end -%>
 <% end -%>
 

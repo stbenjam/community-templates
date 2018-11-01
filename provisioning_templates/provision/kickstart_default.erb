@@ -61,7 +61,7 @@ if host_param('kickstart_liveimg')
 liveimg --url=<%= liveimg_url %> <%= proxy_string %>
 <% else %>
 <%= @mediapath %><%= proxy_string %>
-% @additional_media.each do |medium| -%>
+<% @additional_media.each do |medium| -%>
 repo --name <%= medium[:name] %> --baseurl <%= medium[:url %> <%= medium[:install] ? ' --install' : '' %>
 <% end -%>
 <% end %>
